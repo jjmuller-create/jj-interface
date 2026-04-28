@@ -3,140 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JJ - Interface</title>
+    <title>JJ - Interface de Elite</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#131314">
     <style>
-        body { background: #000; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
-        
-        /* Esfera Futurista */
-        .jj-core {
-            width: 180px; height: 180px;
-            background: radial-gradient(circle, #00f2ff 0%, #0066ff 50%, transparent 70%);
-            border-radius: 50%;
-            box-shadow: 0 0 50px #0066ff, 0 0 100px #00f2ff;
-            animation: pulse 3s infinite ease-in-out;
-            transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
-            cursor: pointer;
-            margin-bottom: 20px;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); filter: brightness(1); }
-            50% { transform: scale(1.1); filter: brightness(1.3); }
-        }
-
-        .jj-core.speaking { animation: wave 0.3s infinite alternate; }
-
-        @keyframes wave {
-            from { transform: scale(1.05); box-shadow: 0 0 70px #00f2ff; }
-            to { transform: scale(1.15); box-shadow: 0 0 30px #0066ff; }
-        }
-
-        /* Painel de Texto e Resposta */
-        #chat-container {
-            width: 90%; max-width: 500px;
-            text-align: center; color: white; display: flex; flex-direction: column; align-items: center;
-        }
-
-        #response-text { 
-            font-size: 1.1rem; max-height: 200px; overflow-y: auto; 
-            text-shadow: 0 0 8px rgba(0,242,255,0.7); margin-bottom: 20px; 
-            padding: 10px; width: 100%; line-height: 1.4;
-        }
-
-        /* Input de Texto */
-        .input-group {
-            display: flex; width: 100%; gap: 10px; margin-bottom: 20px;
-        }
-
-        input[type="text"] {
-            flex: 1; background: rgba(255,255,255,0.1); border: 1px solid #00f2ff;
-            border-radius: 15px; color: white; padding: 12px; outline: none;
-        }
-
-        /* Controles Inferiores */
-        .controls { display: flex; gap: 10px; }
-        button { background: rgba(0, 242, 255, 0.05); border: 1px solid #00f2ff; color: #00f2ff; padding: 10px 15px; border-radius: 15px; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #00f2ff; color: #000; }
+        :root { --bg: #131314; --chat-bg: #1e1f20; --text: #e3e3e3; --accent: #8ab4f8; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        header { padding: 15px 20px; border-bottom: 1px solid #333; display: flex; align-items: center; gap: 10px; font-weight: 500; }
+        .logo { width: 24px; height: 24px; background: linear-gradient(45deg, #4285f4, #9b72cb); border-radius: 50%; }
+        #chat { flex: 1; overflow-y: auto; padding: 20px 10%; display: flex; flex-direction: column; gap: 25px; }
+        .msg { max-width: 80%; line-height: 1.6; font-size: 16px; }
+        .user { align-self: flex-end; background: #2b2c2f; padding: 12px 18px; border-radius: 18px; }
+        .jj { align-self: flex-start; display: flex; gap: 12px; }
+        #input-container { padding: 20px 10% 40px; display: flex; justify-content: center; }
+        .box { width: 100%; max-width: 800px; background: var(--chat-bg); border-radius: 28px; padding: 10px 20px; display: flex; border: 1px solid #444; }
+        input { flex: 1; background: none; border: none; color: white; outline: none; font-size: 16px; }
+        button { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 18px; }
     </style>
 </head>
 <body>
-
-    <div id="jj-visual" class="jj-core" onclick="startListening()"></div>
-
-    <div id="chat-container">
-        <div id="response-text">Toque na esfera para falar ou digite abaixo...</div>
-        
-        <div class="input-group">
-            <input type="text" id="user-input" placeholder="Escreva algo para o JJ..." onkeypress="handleKeyPress(event)">
-            <button onclick="sendTextMessage()">Enviar</button>
-        </div>
-
-        <div class="controls">
-            <button onclick="toggleMute()" id="btn-mute">🔈 SOM: ON</button>
-            <button onclick="takeCapture()">📸 CAPTURA</button>
+    <header><div class="logo"></div> JJ</header>
+    <div id="chat">
+        <div class="jj">Bem-vindo, Senhor. Nível 1 ativo. Por onde começamos nosso mapeamento?</div>
+    </div>
+    <div id="input-container">
+        <div class="box">
+            <input type="text" id="in" placeholder="Digite uma instrução..." onkeypress="if(e.key==='Enter')send()">
+            <button onclick="send()">➔</button>
         </div>
     </div>
-
     <script>
-        const API_URL = "https://jjmuller.onrender.com/chat";
-        let isMuted = false;
-
-        // JJ fala e o texto aparece na tela
-        function speak(text) {
-            document.getElementById('response-text').innerText = text; // Garante que o texto apareça
-            
-            if (isMuted) return;
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'pt-BR';
-            utterance.onstart = () => document.getElementById('jj-visual').classList.add('speaking');
-            utterance.onend = () => document.getElementById('jj-visual').classList.remove('speaking');
-            window.speechSynthesis.speak(utterance);
+        async function send() {
+            const i = document.getElementById('in');
+            const t = i.value.trim(); if(!t) return;
+            add(t, 'user'); i.value = '';
+            const r = await fetch('https://jjmuller.onrender.com/chat', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({text: t})
+            });
+            const d = await r.json(); add(d.jj_response, 'jj');
         }
-
-        // Escuta Ativa (Microfone)
-        function startListening() {
-            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            recognition.lang = 'pt-BR';
-            recognition.onstart = () => document.getElementById('response-text').innerText = "Ouvindo...";
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                sendToJJ(transcript);
-            };
-            recognition.start();
+        function add(t, c) {
+            const d = document.createElement('div'); d.className = 'msg ' + c;
+            d.innerText = t; document.getElementById('chat').appendChild(d);
+            document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
         }
-
-        // Função para enviar texto via Input
-        function handleKeyPress(e) { if (e.key === 'Enter') sendTextMessage(); }
-
-        function sendTextMessage() {
-            const input = document.getElementById('user-input');
-            if (input.value.trim() === "") return;
-            sendToJJ(input.value);
-            input.value = "";
-        }
-
-        // Envio para o Servidor
-        async function sendToJJ(message) {
-            document.getElementById('response-text').innerText = "...";
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: message })
-                });
-                const data = await response.json();
-                speak(data.jj_response);
-            } catch (error) {
-                document.getElementById('response-text').innerText = "Erro ao conectar.";
-            }
-        }
-
-        function toggleMute() { 
-            isMuted = !isMuted; 
-            document.getElementById('btn-mute').innerText = isMuted ? "🔇 SOM: OFF" : "🔈 SOM: ON";
-        }
-        
-        function takeCapture() { alert("Captura gerada!"); }
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
     </script>
 </body>
 </html>

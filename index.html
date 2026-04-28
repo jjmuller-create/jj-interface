@@ -2,10 +2,10 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>JJ - Interface de Elite</title>
     
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#131314">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -29,12 +29,15 @@
             margin: 0;
             display: flex;
             flex-direction: column;
+            /* Resolve o problema do corte em telemóveis */
             height: 100vh;
+            height: 100dvh; 
             overflow: hidden;
         }
 
         header {
             padding: 15px 20px;
+            padding-top: calc(15px + env(safe-area-inset-top));
             font-size: 18px;
             font-weight: 500;
             display: flex;
@@ -42,7 +45,6 @@
             gap: 12px;
             border-bottom: 1px solid #333;
             background-color: var(--bg-color);
-            z-index: 10;
         }
 
         .jj-logo {
@@ -67,12 +69,6 @@
             line-height: 1.6;
             font-size: 16px;
             word-wrap: break-word;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
         }
 
         .user-message {
@@ -88,7 +84,6 @@
             align-self: flex-start;
             display: flex;
             gap: 12px;
-            background-color: transparent;
         }
 
         .avatar-chat {
@@ -106,7 +101,9 @@
         }
 
         #input-area {
-            padding: 15px 5% 30px 5%;
+            padding: 15px 5%;
+            /* Garante que a caixa fique acima da barra do sistema */
+            padding-bottom: calc(25px + env(safe-area-inset-bottom));
             background-color: var(--bg-color);
         }
 
@@ -120,10 +117,7 @@
             display: flex;
             align-items: center;
             border: 1px solid #444;
-            transition: border-color 0.2s;
         }
-
-        .input-wrapper:focus-within { border-color: #666; }
 
         input {
             flex: 1;
@@ -145,11 +139,6 @@
             align-items: center;
         }
 
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg-color); }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
-
         @media (min-width: 1024px) {
             #chat-container, #input-area { padding-left: 20%; padding-right: 20%; }
         }
@@ -165,7 +154,7 @@
     <div id="chat-container">
         <div class="jj-message">
             <div class="avatar-chat" style="background: linear-gradient(45deg, #4285f4, #9b72cb); color: white;">JJ</div>
-            <div>Bem-vindo, Senhor. Nível 1 consolidado. A partir de agora, o que o Senhor me disser será devidamente catalogado nos núcleos de memória. Como deseja iniciar nosso mapeamento?</div>
+            <div>Sistema calibrado, Senhor. A caixa de texto foi ajustada. Podemos iniciar o mapeamento do Núcleo 01 quando desejar.</div>
         </div>
     </div>
 
@@ -183,7 +172,6 @@
 
         async function sendMessage() {
             const input = document.getElementById('user-input');
-            const container = document.getElementById('chat-container');
             const text = input.value.trim();
             if (!text) return;
 
@@ -199,7 +187,7 @@
                 const data = await response.json();
                 appendMessage(data.jj_response, 'jj-message');
             } catch (error) {
-                appendMessage('Senhor, tive um problema de ligação. Verifique se o servidor está ativo.', 'jj-message');
+                appendMessage('Erro de conexão. Verifique o servidor.', 'jj-message');
             }
         }
 
@@ -221,9 +209,7 @@
         });
 
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(err => console.log('PWA Erro:', err));
-            });
+            navigator.serviceWorker.register('./sw.js');
         }
     </script>
 </body>
